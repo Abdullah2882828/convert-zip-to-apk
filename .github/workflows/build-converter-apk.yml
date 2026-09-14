@@ -1,0 +1,144 @@
+name: Build Converter APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android packages
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Install Gradle
+        run: |
+          curl -fsSL https://services.gradle.org/distributions/gradle-8.11.1-bin.zip -o /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /tmp
+          echo "/tmp/gradle-8.11.1/bin" >> "$GITHUB_PATH"
+
+      - name: Create wrapper project
+        run: |
+          mkdir -p builder/app/src/main/java/com/convertziptoapk/app
+          mkdir -p builder/app/src/main/res/values
+          mkdir -p builder/app/src/main/assets
+          cp -R convert_zip_to_apk_jabar/public/. builder/app/src/main/assets/
+
+          cat > builder/settings.gradle <<'EOF'
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+          dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }
+          rootProject.name = 'ConvertFromZipToApk'
+          include ':app'
+          EOF
+
+          cat > builder/build.gradle <<'EOF'
+          plugins {
+            id 'com.android.application' version '8.7.3' apply false
+          }
+          EOF
+
+          cat > builder/gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          android.useAndroidX=true
+          EOF
+
+          cat > builder/app/build.gradle <<'EOF'
+          plugins { id 'com.android.application' }
+          android {
+            namespace 'com.convertziptoapk.app'
+            compileSdk 35
+            defaultConfig {
+              applicationId 'com.convertziptoapk.app'
+              minSdk 23
+              targetSdk 35
+              versionCode 1
+              versionName '2.0.0'
+            }
+          }
+          EOF
+
+          cat > builder/app/src/main/res/values/strings.xml <<'EOF'
+          <resources><string name="app_name">تحويل من ZIP إلى APK</string></resources>
+          EOF
+
+          cat > builder/app/src/main/res/values/styles.xml <<'EOF'
+          <resources>
+            <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
+              <item name="android:windowLightStatusBar">false</item>
+              <item name="android:statusBarColor">#080d0d</item>
+              <item name="android:navigationBarColor">#080d0d</item>
+            </style>
+          </resources>
+          EOF
+
+          cat > builder/app/src/main/AndroidManifest.xml <<'EOF'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+            <uses-permission android:name="android.permission.INTERNET"/>
+            <application
+              android:theme="@style/AppTheme"
+              android:label="@string/app_name"
+              android:usesCleartextTraffic="true">
+              <activity android:name=".MainActivity" android:exported="true">
+                <intent-filter>
+                  <action android:name="android.intent.action.MAIN"/>
+                  <category android:name="android.intent.category.LAUNCHER"/>
+                </intent-filter>
+              </activity>
+            </application>
+          </manifest>
+          EOF
+
+          cat > builder/app/src/main/java/com/convertziptoapk/app/MainActivity.java <<'EOF'
+          package com.convertziptoapk.app;
+          import android.app.Activity;
+          import android.os.Bundle;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          public class MainActivity extends Activity {
+            @Override protected void onCreate(Bundle b) {
+              super.onCreate(b);
+              WebView w = new WebView(this);
+              w.setWebViewClient(new WebViewClient());
+              WebSettings s = w.getSettings();
+              s.setJavaScriptEnabled(true);
+              s.setDomStorageEnabled(true);
+              s.setAllowFileAccess(true);
+              s.setAllowContentAccess(true);
+              w.loadUrl("file:///android_asset/index.html");
+              setContentView(w);
+            }
+          }
+          EOF
+
+      - name: Build APK
+        working-directory: builder
+        run: gradle --no-daemon --stacktrace assembleDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: convert-from-zip-to-apk-jabar
+          path: builder/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
