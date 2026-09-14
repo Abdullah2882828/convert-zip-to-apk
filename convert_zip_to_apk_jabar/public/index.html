@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>تحويل من ZIP إلى APK — جبار</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="app">
+  <header class="hero">
+    <div class="badge">⚡ JABAR 2.0</div>
+    <h1>تحويل من ZIP إلى APK</h1>
+    <p>محرك واحد لرفع المشاريع والملفات والروابط وبناء APK حقيقي عندما تكون أدوات البناء متوفرة على الخادم.</p>
+  </header>
+
+  <section class="card">
+    <div class="tabs">
+      <button class="tab active" data-tab="file">ملف / مشروع</button>
+      <button class="tab" data-tab="url">رابط URL</button>
+    </div>
+
+    <div id="fileTab" class="tab-panel active">
+      <label class="drop">
+        <input id="fileInput" type="file">
+        <span class="drop-icon">📦</span>
+        <strong>اختر أي ملف أو مشروع</strong>
+        <small>ZIP، HTML، PDF، صورة، ملفات مشروع Android/Flutter/React Native…</small>
+      </label>
+      <div id="fileName" class="file-name">لم يتم اختيار ملف</div>
+    </div>
+
+    <div id="urlTab" class="tab-panel">
+      <label>رابط المشروع</label>
+      <input id="urlInput" class="text-input" type="url" placeholder="https://github.com/owner/repo أو رابط مشروع/صفحة">
+      <div class="hint">روابط GitHub للمستودعات تُعامل كمصدر مشروع، بينما الرابط العادي يمكن تغليفه كتطبيق WebView.</div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label>اسم التطبيق</label>
+        <input id="appName" class="text-input" value="تحويل من ملف إلى APK">
+      </div>
+      <div>
+        <label>اسم الحزمة</label>
+        <input id="packageName" class="text-input" value="com.convertziptoapk.app">
+      </div>
+      <div>
+        <label>الإصدار</label>
+        <input id="versionName" class="text-input" value="1.0.0">
+      </div>
+      <div>
+        <label>أيقونة التطبيق</label>
+        <input id="iconInput" class="text-input" type="file" accept=".png,image/png">
+      </div>
+    </div>
+
+    <button id="buildBtn" class="primary">🚀 ابدأ التحويل والبناء</button>
+    <div id="status" class="status hidden">
+      <div class="status-head"><strong id="statusText">جاري العمل…</strong><span id="progressText">0%</span></div>
+      <div class="progress"><div id="bar"></div></div>
+      <div id="detail" class="detail"></div>
+    </div>
+
+    <a id="downloadBtn" class="download hidden" href="#">⬇️ تنزيل APK</a>
+  </section>
+
+  <section class="card compact">
+    <h2>ماذا يدعم؟</h2>
+    <div class="chips">
+      <span>Android Gradle</span><span>Flutter</span><span>React Native</span><span>Capacitor</span><span>Web / PWA</span><span>PDF</span><span>صور</span><span>ملفات نصية</span><span>روابط GitHub</span>
+    </div>
+    <p class="muted">التحويل "لأي مشروع مهما كان" حرفيًا غير ممكن؛ المشروع يحتاج محرك بناء مناسب. هذا الإصدار يحاول التعرف تلقائيًا على أشهر أنواع المشاريع ويعطي خطأ صريحًا عندما لا يوجد محرك مناسب بدل إنتاج APK وهمي.</p>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

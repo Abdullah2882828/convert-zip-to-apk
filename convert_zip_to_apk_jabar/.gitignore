@@ -1,0 +1,7 @@
+node_modules/
+uploads/*
+workspace/*
+*.apk
+*.aab
+.env
+.DS_Store

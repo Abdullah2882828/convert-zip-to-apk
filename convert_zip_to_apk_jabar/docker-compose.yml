@@ -1,0 +1,17 @@
+services:
+  converter:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      MAX_UPLOAD_MB: "2048"
+      MAX_REMOTE_MB: "2048"
+      BUILD_TIMEOUT_MS: "3600000"
+    volumes:
+      - converter-work:/app/workspace
+      - converter-uploads:/app/uploads
+
+volumes:
+  converter-work:
+  converter-uploads:
